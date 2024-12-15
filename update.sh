@@ -35,18 +35,22 @@ YAY_CACHE="$HOME/.cache/yay"
 for PACKAGE_DIR in "$YAY_CACHE"/*; do
     if [[ -d $PACKAGE_DIR ]]; then
         PACKAGE_NAME=$(basename "$PACKAGE_DIR")
-        PACKAGE_FILE=$(find "$PACKAGE_DIR" -type f -name "*.tar.zst" | sort -V | tail -n 1)
         
-        if [[ -f $PACKAGE_FILE ]]; then
-            TARGET_FILE="$TARGET_FOLDER/$(basename "$PACKAGE_FILE")"
-            
-            # Remove older versions of the package from the target folder
-            find "$TARGET_FOLDER" -type f -name "${PACKAGE_NAME}-*.tar.zst" ! -name "$(basename "$PACKAGE_FILE")" -exec rm {} \;
-            
-            # Copy the latest package file
-            echo "Copying $PACKAGE_FILE to $TARGET_FOLDER"
-            cp "$PACKAGE_FILE" "$TARGET_FOLDER"
-        fi
+        # Find all .tar.zst files in the package directory
+        PACKAGE_FILES=$(find "$PACKAGE_DIR" -type f -name "*.tar.zst")
+        
+        for PACKAGE_FILE in $PACKAGE_FILES; do
+            if [[ -f $PACKAGE_FILE ]]; then
+                TARGET_FILE="$TARGET_FOLDER/$(basename "$PACKAGE_FILE")"
+                
+                # Remove any older versions of the same package in the target folder
+                find "$TARGET_FOLDER" -type f -name "${PACKAGE_NAME}-*.tar.zst" ! -name "$(basename "$PACKAGE_FILE")" -exec rm {} \;
+                
+                # Copy the file to the target folder
+                echo "Copying $PACKAGE_FILE to $TARGET_FOLDER"
+                cp "$PACKAGE_FILE" "$TARGET_FOLDER"
+            fi
+        done
     fi
 done
 
